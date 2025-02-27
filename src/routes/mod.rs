@@ -7,7 +7,10 @@ use axum::{
     http::StatusCode,
     response::{Html, IntoResponse},
 };
+use opentelemetry::trace::TraceContextExt;
 use serde::Serialize;
+use tracing::{Instrument, Level, info, span};
+use tracing_opentelemetry::OpenTelemetrySpanExt;
 
 #[derive(Serialize)]
 struct Health {
@@ -22,14 +25,32 @@ pub(crate) async fn health() -> impl IntoResponse {
 
 pub(crate) async fn graphql_playground() -> impl IntoResponse {
     Html(playground_source(
-        // (1)
         GraphQLPlaygroundConfig::new("/").subscription_endpoint("/ws"),
     ))
 }
 
 pub(crate) async fn graphql_handler(
-    Extension(schema): Extension<ServiceSchema>, // (2)
+    Extension(schema): Extension<ServiceSchema>,
     req: GraphQLRequest,
 ) -> GraphQLResponse {
-    schema.execute(req.into_inner()).await.into() // (3)
+    let span = span!(Level::INFO, "graphql_execution"); // (1)
+
+    info!("Processing GraphQL request");
+
+    let response = async move { schema.execute(req.into_inner()).await } // (2)
+        .instrument(span.clone())
+        .await;
+
+    info!("Processing GraphQL request finished");
+
+    response
+        .extension(
+            // (3)
+            "traceId",
+            async_graphql::Value::String(format!(
+                "{}",
+                span.context().span().span_context().trace_id()
+            )),
+        )
+        .into()
 }

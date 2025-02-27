@@ -11,3 +11,10 @@ metrics = "0.24.1"
 metrics-exporter-prometheus = "0.16.2"
 serde = { version = "1.0.218", features = ["derive"] }
 tokio = { version = "1.43.0", features = ["full"] }
+opentelemetry = { version = "0.20.0", features = ["rt-tokio"] }
+opentelemetry-jaeger = { version = "0.19.0", features = ["rt-tokio"] }
+tracing = "0.1.37"
+tracing-opentelemetry = "0.21.0"
+tracing-subscriber = { version = "0.3.17", features = ["std", "env-filter"] }
+dotenv = "0.15.0"
+tower-http = { version = "0.6.2", features = ["full"] }
