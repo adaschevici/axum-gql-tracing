@@ -1,0 +1,11 @@
+[package]
+name = "axum-gql-tracing"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+async-graphql = "7.0.15"
+async-graphql-axum = "7.0.15"
+axum = "0.8.1"
+serde = { version = "1.0.218", features = ["derive"] }
+tokio = { version = "1.43.0", features = ["full"] }
