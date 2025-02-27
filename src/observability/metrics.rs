@@ -28,7 +28,7 @@ pub(crate) fn create_prometheus_recorder() -> PrometheusHandle {
         .expect("Could not install the Prometheus recorder")
 }
 
-pub(crate) async fn track_metrics<B>(req: Request<B>, next: Next<B>) -> impl IntoResponse {
+pub(crate) async fn track_metrics<B>(req: Request<Body>, next: Next) -> impl IntoResponse {
     // (3)
     let start = Instant::now();
     let path = if let Some(matched_path) = req.extensions().get::<MatchedPath>() {

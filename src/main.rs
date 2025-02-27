@@ -2,7 +2,7 @@ use crate::model::QueryRoot;
 use crate::observability::metrics::{create_prometheus_recorder, track_metrics};
 use crate::routes::{graphql_handler, graphql_playground, health};
 use async_graphql::{EmptyMutation, EmptySubscription, Schema};
-use axum::{Router, Server, extract::Extension, middleware, routing::get};
+use axum::{Router, body::Body, extract::Extension, middleware, routing::get};
 use std::future::ready;
 
 mod model;
@@ -18,11 +18,11 @@ async fn main() {
         .route("/", get(graphql_playground).post(graphql_handler))
         .route("/health", get(health))
         .route("/metrics", get(move || ready(prometheus_recorder.render()))) // (1)
-        .route_layer(middleware::from_fn(track_metrics)) // (2)
+        .route_layer(middleware::from_fn(track_metrics::<Body>)) // (2)
         .layer(Extension(schema)); // (2)
-
-    Server::bind(&"0.0.0.0:8000".parse().unwrap())
-        .serve(app.into_make_service())
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
         .await
         .unwrap();
+    println!("listening on {}", listener.local_addr().unwrap());
+    axum::serve(listener, app).await.unwrap();
 }
